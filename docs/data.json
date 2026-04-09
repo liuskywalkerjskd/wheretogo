@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-09T13:00:34.549620+00:00",
-  "total_submitted": 82,
+  "generated_at": "2026-04-09T13:19:24.757888+00:00",
+  "total_submitted": 84,
   "expected_total": 96,
   "regions": [
     {
@@ -9,8 +9,8 @@
       "top16_signed_count": 5,
       "national_quota": 10,
       "resurrection_quota": 5,
-      "volunteers": 23,
-      "projected_volunteers": 23,
+      "volunteers": 24,
+      "projected_volunteers": 24,
       "capacity": 32,
       "schools": [
         {
@@ -123,6 +123,18 @@
         },
         {
           "sort_index": 10,
+          "school": "东莞理工学院",
+          "national_rank": 57,
+          "performance": "三等奖",
+          "point_rank": 61,
+          "priority": false,
+          "reallocation_status": "-",
+          "reallocation_hint": "-",
+          "ghost": false,
+          "empty": false
+        },
+        {
+          "sort_index": 11,
           "school": "广州城市理工学院",
           "national_rank": 61,
           "performance": "三等奖",
@@ -134,7 +146,7 @@
           "empty": false
         },
         {
-          "sort_index": 11,
+          "sort_index": 12,
           "school": "桂林电子科技大学",
           "national_rank": 62,
           "performance": "三等奖",
@@ -146,7 +158,7 @@
           "empty": false
         },
         {
-          "sort_index": 12,
+          "sort_index": 13,
           "school": "深圳技术大学",
           "national_rank": 81,
           "performance": "三等奖",
@@ -158,7 +170,7 @@
           "empty": false
         },
         {
-          "sort_index": 13,
+          "sort_index": 14,
           "school": "西安电子科技大学",
           "national_rank": 85,
           "performance": "三等奖",
@@ -170,7 +182,7 @@
           "empty": false
         },
         {
-          "sort_index": 14,
+          "sort_index": 15,
           "school": "湘潭大学",
           "national_rank": 90,
           "performance": "三等奖",
@@ -182,7 +194,7 @@
           "empty": false
         },
         {
-          "sort_index": 15,
+          "sort_index": 16,
           "school": "长沙理工大学",
           "national_rank": 94,
           "performance": "三等奖",
@@ -194,7 +206,7 @@
           "empty": false
         },
         {
-          "sort_index": 16,
+          "sort_index": 17,
           "school": "仲恺农业工程学院",
           "national_rank": 98,
           "performance": "三等奖",
@@ -206,7 +218,7 @@
           "empty": false
         },
         {
-          "sort_index": 17,
+          "sort_index": 18,
           "school": "西交利物浦大学",
           "national_rank": null,
           "performance": "-",
@@ -218,7 +230,7 @@
           "empty": false
         },
         {
-          "sort_index": 18,
+          "sort_index": 19,
           "school": "广州航海学院",
           "national_rank": null,
           "performance": "-",
@@ -230,7 +242,7 @@
           "empty": false
         },
         {
-          "sort_index": 19,
+          "sort_index": 20,
           "school": "华南师范大学（佛山校区）",
           "national_rank": null,
           "performance": "-",
@@ -242,7 +254,7 @@
           "empty": false
         },
         {
-          "sort_index": 20,
+          "sort_index": 21,
           "school": "武汉大学",
           "national_rank": null,
           "performance": "-",
@@ -254,7 +266,7 @@
           "empty": false
         },
         {
-          "sort_index": 21,
+          "sort_index": 22,
           "school": "厦门理工学院",
           "national_rank": null,
           "performance": "-",
@@ -266,7 +278,7 @@
           "empty": false
         },
         {
-          "sort_index": 22,
+          "sort_index": 23,
           "school": "厦门大学",
           "national_rank": null,
           "performance": "-",
@@ -278,7 +290,7 @@
           "empty": false
         },
         {
-          "sort_index": 23,
+          "sort_index": 24,
           "school": "复旦大学",
           "national_rank": null,
           "performance": "-",
@@ -288,18 +300,6 @@
           "reallocation_hint": "-",
           "ghost": false,
           "empty": false
-        },
-        {
-          "sort_index": 24,
-          "school": "空位",
-          "national_rank": null,
-          "performance": "-",
-          "point_rank": null,
-          "priority": false,
-          "reallocation_status": "-",
-          "reallocation_hint": "-",
-          "ghost": false,
-          "empty": true
         },
         {
           "sort_index": 25,
@@ -861,8 +861,8 @@
       "top16_signed_count": 4,
       "national_quota": 8,
       "resurrection_quota": 5,
-      "volunteers": 22,
-      "projected_volunteers": 27,
+      "volunteers": 23,
+      "projected_volunteers": 28,
       "capacity": 32,
       "schools": [
         {
@@ -975,6 +975,18 @@
         },
         {
           "sort_index": 10,
+          "school": "哈尔滨工业大学（深圳）",
+          "national_rank": 33,
+          "performance": "复活赛",
+          "point_rank": 32,
+          "priority": false,
+          "reallocation_status": "-",
+          "reallocation_hint": "-",
+          "ghost": false,
+          "empty": false
+        },
+        {
+          "sort_index": 11,
           "school": "香港科技大学",
           "national_rank": 36,
           "performance": "复活赛",
@@ -986,7 +998,7 @@
           "empty": false
         },
         {
-          "sort_index": 11,
+          "sort_index": 12,
           "school": "天津大学",
           "national_rank": 42,
           "performance": "复活赛",
@@ -998,7 +1010,7 @@
           "empty": false
         },
         {
-          "sort_index": 12,
+          "sort_index": 13,
           "school": "北京信息科技大学",
           "national_rank": 51,
           "performance": "三等奖",
@@ -1010,7 +1022,7 @@
           "empty": false
         },
         {
-          "sort_index": 13,
+          "sort_index": 14,
           "school": "成都信息工程大学",
           "national_rank": 53,
           "performance": "三等奖",
@@ -1022,7 +1034,7 @@
           "empty": false
         },
         {
-          "sort_index": 14,
+          "sort_index": 15,
           "school": "东北大学秦皇岛分校",
           "national_rank": 56,
           "performance": "三等奖",
@@ -1034,7 +1046,7 @@
           "empty": false
         },
         {
-          "sort_index": 15,
+          "sort_index": 16,
           "school": "河北科技大学",
           "national_rank": 68,
           "performance": "三等奖",
@@ -1046,7 +1058,7 @@
           "empty": false
         },
         {
-          "sort_index": 16,
+          "sort_index": 17,
           "school": "华北理工大学",
           "national_rank": 70,
           "performance": "三等奖",
@@ -1058,7 +1070,7 @@
           "empty": false
         },
         {
-          "sort_index": 17,
+          "sort_index": 18,
           "school": "沈阳理工大学",
           "national_rank": 84,
           "performance": "三等奖",
@@ -1070,7 +1082,7 @@
           "empty": false
         },
         {
-          "sort_index": 18,
+          "sort_index": 19,
           "school": "长安大学",
           "national_rank": 93,
           "performance": "三等奖",
@@ -1082,7 +1094,7 @@
           "empty": false
         },
         {
-          "sort_index": 19,
+          "sort_index": 20,
           "school": "香港大学",
           "national_rank": null,
           "performance": "-",
@@ -1094,7 +1106,7 @@
           "empty": false
         },
         {
-          "sort_index": 20,
+          "sort_index": 21,
           "school": "内蒙古科技大学",
           "national_rank": null,
           "performance": "-",
@@ -1106,7 +1118,7 @@
           "empty": false
         },
         {
-          "sort_index": 21,
+          "sort_index": 22,
           "school": "辽宁石油化工大学",
           "national_rank": null,
           "performance": "-",
@@ -1118,7 +1130,7 @@
           "empty": false
         },
         {
-          "sort_index": 22,
+          "sort_index": 23,
           "school": "江南大学霞客湾校区",
           "national_rank": null,
           "performance": "-",
@@ -1130,7 +1142,7 @@
           "empty": false
         },
         {
-          "sort_index": 23,
+          "sort_index": 24,
           "school": "中国石油大学（北京）",
           "national_rank": 32,
           "performance": "三十二强",
@@ -1142,7 +1154,7 @@
           "empty": false
         },
         {
-          "sort_index": 24,
+          "sort_index": 25,
           "school": "华北科技学院",
           "national_rank": 39,
           "performance": "复活赛",
@@ -1154,7 +1166,7 @@
           "empty": false
         },
         {
-          "sort_index": 25,
+          "sort_index": 26,
           "school": "首都师范大学",
           "national_rank": 40,
           "performance": "复活赛",
@@ -1166,7 +1178,7 @@
           "empty": false
         },
         {
-          "sort_index": 26,
+          "sort_index": 27,
           "school": "北京理工大学",
           "national_rank": 50,
           "performance": "三等奖",
@@ -1178,7 +1190,7 @@
           "empty": false
         },
         {
-          "sort_index": 27,
+          "sort_index": 28,
           "school": "青岛大学",
           "national_rank": 77,
           "performance": "三等奖",
@@ -1188,18 +1200,6 @@
           "reallocation_hint": "来自东部赛区",
           "ghost": true,
           "empty": false
-        },
-        {
-          "sort_index": 28,
-          "school": "空位",
-          "national_rank": null,
-          "performance": "-",
-          "point_rank": null,
-          "priority": false,
-          "reallocation_status": "-",
-          "reallocation_hint": "-",
-          "ghost": false,
-          "empty": true
         },
         {
           "sort_index": 29,
