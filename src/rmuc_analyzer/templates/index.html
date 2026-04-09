@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RMUC 2026 赛区分析看板</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&family=ZCOOL+XiaoWei&display=swap');
+
+      :root {
+        --bg-top: #fff7ef;
+        --bg-bottom: #f3f8ff;
+        --card: #ffffff;
+        --text: #17212b;
+        --muted: #5a6a78;
+        --line: #dde6ef;
+        --accent: #e86a33;
+        --accent-soft: #ffe4d5;
+        --good: #2d8f66;
+        --warn: #d86a1a;
+        --priority: #1f7a8c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        background: radial-gradient(circle at 12% 18%, #ffe7d6 0, transparent 38%),
+          radial-gradient(circle at 88% 14%, #d8edf8 0, transparent 40%),
+          linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+        font-family: "Noto Serif SC", "Source Han Serif SC", "STSong", serif;
+        min-height: 100vh;
+      }
+
+      .shell {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 22px 18px 36px;
+      }
+
+      .hero {
+        background: linear-gradient(120deg, #132438, #1f3e52 60%, #275a6d);
+        color: #fff;
+        border-radius: 20px;
+        padding: 22px 24px;
+        box-shadow: 0 16px 40px rgba(17, 43, 66, 0.25);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -34px;
+        top: -24px;
+        width: 170px;
+        height: 170px;
+        background: conic-gradient(from 130deg, #ffc089, #ffe7ce, #ffc089);
+        border-radius: 50%;
+        opacity: 0.32;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.2;
+        font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+      }
+
+      .sub {
+        margin: 8px 0 0;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 14px;
+      }
+
+      .meta {
+        margin-top: 14px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        letter-spacing: 0.2px;
+      }
+
+      .pill-light {
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+      }
+
+      .toolbar {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 8px 14px;
+        background: #ffe6d5;
+        color: #5b2f17;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: "Noto Serif SC", serif;
+      }
+
+      .btn:hover {
+        background: #ffd4b8;
+      }
+
+      .board {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .region-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 8px 28px rgba(43, 75, 95, 0.08);
+        display: flex;
+        flex-direction: column;
+        min-height: 580px;
+        animation: rise 0.45s ease;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .region-head {
+        padding: 14px 14px 10px;
+        border-bottom: 1px dashed var(--line);
+      }
+
+      .region-name {
+        margin: 0;
+        font-size: 22px;
+        font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+      }
+
+      .quota-row {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .quota {
+        background: #f7fafc;
+        border: 1px solid #d8e5f0;
+        border-radius: 10px;
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      .quota b {
+        color: var(--accent);
+      }
+
+      .table-wrap {
+        overflow: auto;
+        padding: 8px 10px 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #edf3f7;
+        padding: 7px 5px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+        background: #fff;
+      }
+
+      .school {
+        font-weight: 700;
+      }
+
+      .tag {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 1px 8px;
+        font-size: 11px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+
+      .col-nowrap {
+        white-space: nowrap;
+      }
+
+      .col-performance {
+        white-space: nowrap;
+        min-width: 64px;
+      }
+
+      .tag-priority {
+        color: #0a5f70;
+        background: #ddf4f8;
+        border-color: #b7e1ea;
+      }
+
+      .tag-normal {
+        color: #546372;
+        background: #f2f6fa;
+        border-color: #dce5ee;
+      }
+
+      .tag-move {
+        color: #8d3d09;
+        background: var(--accent-soft);
+        border-color: #ffc9ac;
+      }
+
+      .tag-none {
+        color: #667785;
+        background: #f4f7fb;
+        border-color: #dbe4ec;
+      }
+
+      .row-empty td {
+        color: #93a1ad;
+      }
+
+      .row-empty .school {
+        font-weight: 500;
+      }
+
+      @media (max-width: 1180px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+        .region-card {
+          min-height: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero">
+        <h1 class="title">RMUC 2026 三赛区志愿分析网页</h1>
+        <p class="sub">排序规则：先按去年国赛排名，再按积分排名；优先队伍受保护；若触发调剂会显示可能去向。</p>
+        <div class="meta">
+          <span class="pill pill-light" id="generatedAt">-</span>
+          <span class="pill pill-light" id="submitMeta">-</span>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="refreshBtn" type="button">立即刷新</button>
+        </div>
+      </section>
+
+      <section class="board" id="board"></section>
+    </div>
+
+    <script>
+      const initialPayload = {{ initial_payload|tojson }};
+      const boardEl = document.getElementById("board");
+      const generatedAtEl = document.getElementById("generatedAt");
+      const submitMetaEl = document.getElementById("submitMeta");
+      const refreshBtn = document.getElementById("refreshBtn");
+
+      function fmtTime(iso) {
+        const d = new Date(iso);
+        return Number.isNaN(d.getTime()) ? iso : d.toLocaleString("zh-CN", { hour12: false });
+      }
+
+      function rankText(nationalRank, pointRank) {
+        const a = nationalRank ? `国赛#${nationalRank}` : "国赛-";
+        const b = pointRank ? `积分#${pointRank}` : "积分-";
+        return `${a} / ${b}`;
+      }
+
+      function renderRegion(region) {
+        const rows = region.schools
+          .map((item) => {
+            if (item.empty) {
+              return `
+                <tr class="row-empty">
+                  <td>${item.sort_index}</td>
+                  <td class="school">空位</td>
+                  <td>-</td>
+                  <td class="col-performance">-</td>
+                  <td class="col-nowrap">-</td>
+                  <td class="col-nowrap">-</td>
+                </tr>
+              `;
+            }
+
+            const priorityTag = item.priority
+              ? '<span class="tag tag-priority">优先</span>'
+              : '<span class="tag tag-normal">普通</span>';
+            const moveTag = item.possible_reallocation !== "-"
+              ? `<span class="tag tag-move">${item.possible_reallocation}</span>`
+              : '<span class="tag tag-none">-</span>';
+            return `
+              <tr>
+                <td>${item.sort_index}</td>
+                <td class="school">${item.school}</td>
+                <td>${rankText(item.national_rank, item.point_rank)}</td>
+                <td class="col-performance">${item.performance}</td>
+                <td class="col-nowrap">${priorityTag}</td>
+                <td class="col-nowrap">${moveTag}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        return `
+          <article class="region-card">
+            <header class="region-head">
+              <h2 class="region-name">${region.region_display}</h2>
+              <div class="quota-row">
+                <span class="quota">国赛名额 <b>${region.national_quota}</b></span>
+                <span class="quota">复活赛名额 <b>${region.resurrection_quota}</b></span>
+                <span class="quota">当前志愿 <b>${region.volunteers}/${region.capacity}</b></span>
+              </div>
+            </header>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>学校</th>
+                    <th>排名</th>
+                    <th class="col-performance">成绩</th>
+                    <th>优先</th>
+                    <th>可能调剂</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows || '<tr><td colspan="6">暂无学校数据</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        `;
+      }
+
+      function render(payload) {
+        generatedAtEl.textContent = `更新时间: ${fmtTime(payload.generated_at)}`;
+        submitMetaEl.textContent = `已提交志愿: ${payload.total_submitted}/${payload.expected_total}`;
+
+        boardEl.innerHTML = payload.regions.map(renderRegion).join("");
+      }
+
+      async function refresh() {
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = "刷新中...";
+        try {
+          const resp = await fetch("/api/analysis", { cache: "no-store" });
+          if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+          }
+          const payload = await resp.json();
+          render(payload);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          refreshBtn.disabled = false;
+          refreshBtn.textContent = "立即刷新";
+        }
+      }
+
+      refreshBtn.addEventListener("click", refresh);
+      render(initialPayload);
+      setInterval(refresh, 60000);
+    </script>
+  </body>
+</html>
