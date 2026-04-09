@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RMUC 2026 赛区分析看板</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&family=ZCOOL+XiaoWei&display=swap');
+
+      :root {
+        --bg-top: #fff7ef;
+        --bg-bottom: #f3f8ff;
+        --card: #ffffff;
+        --text: #17212b;
+        --muted: #5a6a78;
+        --line: #dde6ef;
+        --accent: #e86a33;
+        --accent-soft: #ffe4d5;
+        --good: #2d8f66;
+        --warn: #d86a1a;
+        --priority: #1f7a8c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        background: radial-gradient(circle at 12% 18%, #ffe7d6 0, transparent 38%),
+          radial-gradient(circle at 88% 14%, #d8edf8 0, transparent 40%),
+          linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+        font-family: "Noto Serif SC", "Source Han Serif SC", "STSong", serif;
+        min-height: 100vh;
+      }
+
+      .shell {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 22px 18px 36px;
+      }
+
+      .hero {
+        background: linear-gradient(120deg, #132438, #1f3e52 60%, #275a6d);
+        color: #fff;
+        border-radius: 20px;
+        padding: 22px 24px;
+        box-shadow: 0 16px 40px rgba(17, 43, 66, 0.25);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -34px;
+        top: -24px;
+        width: 170px;
+        height: 170px;
+        background: conic-gradient(from 130deg, #ffc089, #ffe7ce, #ffc089);
+        border-radius: 50%;
+        opacity: 0.32;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.2;
+        font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+      }
+
+      .sub {
+        margin: 8px 0 0;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 14px;
+      }
+
+      .meta {
+        margin-top: 14px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        letter-spacing: 0.2px;
+      }
+
+      .pill-light {
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+      }
+
+      .toolbar {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 8px 14px;
+        background: #ffe6d5;
+        color: #5b2f17;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: "Noto Serif SC", serif;
+      }
+
+      .btn:hover {
+        background: #ffd4b8;
+      }
+
+      .board {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .region-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 8px 28px rgba(43, 75, 95, 0.08);
+        display: flex;
+        flex-direction: column;
+        min-height: 580px;
+        animation: rise 0.45s ease;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .region-head {
+        padding: 14px 14px 10px;
+        border-bottom: 1px dashed var(--line);
+      }
+
+      .region-name {
+        margin: 0;
+        font-size: 22px;
+        font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+      }
+
+      .quota-row {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .quota {
+        background: #f7fafc;
+        border: 1px solid #d8e5f0;
+        border-radius: 10px;
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      .quota b {
+        color: var(--accent);
+      }
+
+      .table-wrap {
+        overflow: auto;
+        padding: 8px 10px 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #edf3f7;
+        padding: 7px 5px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+        background: #fff;
+      }
+
+      .school {
+        font-weight: 700;
+      }
+
+      .tag {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 1px 8px;
+        font-size: 11px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+
+      .col-nowrap {
+        white-space: nowrap;
+      }
+
+      .col-performance {
+        white-space: nowrap;
+        min-width: 64px;
+      }
+
+      .tag-priority {
+        color: #0a5f70;
+        background: #ddf4f8;
+        border-color: #b7e1ea;
+      }
+
+      .tag-normal {
+        color: #546372;
+        background: #f2f6fa;
+        border-color: #dce5ee;
+      }
+
+      .tag-move {
+        color: #8d3d09;
+        background: var(--accent-soft);
+        border-color: #ffc9ac;
+      }
+
+      .tag-status-out {
+        color: #9a3b0b;
+        background: #ffe7da;
+        border-color: #ffcdb4;
+      }
+
+      .tag-status-in {
+        color: #51610f;
+        background: #edf7d6;
+        border-color: #d2e7a1;
+      }
+
+      .tag-status-none {
+        color: #667785;
+        background: #f4f7fb;
+        border-color: #dbe4ec;
+      }
+
+      .tag-none {
+        color: #667785;
+        background: #f4f7fb;
+        border-color: #dbe4ec;
+      }
+
+      .move-hint {
+        margin-left: 6px;
+        color: #5e6e7b;
+        font-size: 11px;
+      }
+
+      .row-ghost td {
+        opacity: 0.56;
+      }
+
+      .row-ghost .school {
+        font-style: italic;
+      }
+
+      .row-empty td {
+        color: #93a1ad;
+      }
+
+      .row-empty .school {
+        font-weight: 500;
+      }
+
+      @media (max-width: 1180px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+        .region-card {
+          min-height: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero">
+        <h1 class="title">RMUC 2026 三赛区志愿分析网页</h1>
+        <p class="sub">排序规则：先按去年国赛排名，再按积分排名；被预测调剂的队伍会虚化并标注调入/调出状态。</p>
+        <div class="meta">
+          <span class="pill pill-light" id="generatedAt">-</span>
+          <span class="pill pill-light" id="submitMeta">-</span>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="refreshBtn" type="button">立即刷新</button>
+        </div>
+      </section>
+
+      <section class="board" id="board"></section>
+    </div>
+
+    <script>
+      const initialPayload = {"expected_total": 96, "generated_at": "2026-04-09T13:00:34.549620+00:00", "notes": ["\u79ef\u5206\u699c\u6765\u6e90: \u5df2\u4ece1884\u516c\u544a\u6293\u53d6\u5e76\u5199\u5165\u672c\u5730 /tmp/wheretogo/data/rmu_ranking.csv", "\u4f18\u5148: \u4ec5\u4f7f\u7528\u914d\u7f6e priority_schools", "\u672c\u8f6e16\u5f3a\u5b9e\u65f6\u8ba1\u6570: \u5357\u90e8=5\u3001\u4e1c\u90e8=5\u3001\u5317\u90e8=4", "\u56fd\u8d5b\u540d\u989d\u6765\u6e90: \u9884\u6d4b\u8c03\u5242\u540e\u53bb\u5e74\u768416\u5f3a\u5b9e\u9645\u62a5\u540d\u6570\uff08\u5b9e\u65f6\uff09", "\u540d\u989d\u4f30\u7b97\u53e3\u5f84: \u56fd\u8d5b\u4e0e\u590d\u6d3b\u8d5b\u5747\u6309\u9884\u6d4b\u8c03\u5242\u540e\u5206\u5e03\u8ba1\u7b97", "\u590d\u6d3b\u8d5b\u4f30\u7b97\u53e3\u5f84: \u62a5\u540d\u672a\u6ee1\u65f6\u5148\u6309\u8d5b\u533a\u8865\u8db38\uff0c\u518d\u53e0\u52a0\u9884\u6d4b\u8c03\u914d\u540e\u8fdb\u884c\u5206\u914d", "\u590d\u6d3b\u8d5b\u540d\u989d\u4e3a\u6a21\u62df\u4f30\u7b97\uff0c\u5b98\u65b9\u6700\u7ec8\u5206\u914d\u4ee5\u7ec4\u59d4\u4f1a\u516c\u544a\u4e3a\u51c6"], "regions": [{"capacity": 32, "national_quota": 10, "projected_volunteers": 23, "region": "\u5357\u90e8", "region_display": "\u5357\u90e8\u8d5b\u533a", "resurrection_quota": 5, "schools": [{"empty": false, "ghost": false, "national_rank": 1, "performance": "\u51a0\u519b", "point_rank": 1, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e0a\u6d77\u4ea4\u901a\u5927\u5b66", "sort_index": 1}, {"empty": false, "ghost": false, "national_rank": 3, "performance": "\u5b63\u519b", "point_rank": 2, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u534e\u5357\u7406\u5de5\u5927\u5b66", "sort_index": 2}, {"empty": false, "ghost": false, "national_rank": 12, "performance": "\u5341\u516d\u5f3a", "point_rank": 5, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u534e\u5357\u519c\u4e1a\u5927\u5b66", "sort_index": 3}, {"empty": false, "ghost": false, "national_rank": 14, "performance": "\u5341\u516d\u5f3a", "point_rank": 6, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6df1\u5733\u5927\u5b66", "sort_index": 4}, {"empty": false, "ghost": false, "national_rank": 16, "performance": "\u5341\u516d\u5f3a", "point_rank": 13, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u592a\u539f\u7406\u5de5\u5927\u5b66", "sort_index": 5}, {"empty": false, "ghost": false, "national_rank": 21, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 20, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7535\u5b50\u79d1\u6280\u5927\u5b66\u4e2d\u5c71\u5b66\u9662", "sort_index": 6}, {"empty": false, "ghost": false, "national_rank": 25, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 17, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e94\u9091\u5927\u5b66", "sort_index": 7}, {"empty": false, "ghost": false, "national_rank": 26, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 22, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e2d\u5357\u5927\u5b66", "sort_index": 8}, {"empty": false, "ghost": false, "national_rank": 35, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 50, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u56db\u5ddd\u5927\u5b66", "sort_index": 9}, {"empty": false, "ghost": false, "national_rank": 61, "performance": "\u4e09\u7b49\u5956", "point_rank": 52, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5e7f\u5dde\u57ce\u5e02\u7406\u5de5\u5b66\u9662", "sort_index": 10}, {"empty": false, "ghost": false, "national_rank": 62, "performance": "\u4e09\u7b49\u5956", "point_rank": 28, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6842\u6797\u7535\u5b50\u79d1\u6280\u5927\u5b66", "sort_index": 11}, {"empty": false, "ghost": false, "national_rank": 81, "performance": "\u4e09\u7b49\u5956", "point_rank": 79, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6df1\u5733\u6280\u672f\u5927\u5b66", "sort_index": 12}, {"empty": false, "ghost": false, "national_rank": 85, "performance": "\u4e09\u7b49\u5956", "point_rank": 35, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u897f\u5b89\u7535\u5b50\u79d1\u6280\u5927\u5b66", "sort_index": 13}, {"empty": false, "ghost": false, "national_rank": 90, "performance": "\u4e09\u7b49\u5956", "point_rank": 92, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6e58\u6f6d\u5927\u5b66", "sort_index": 14}, {"empty": false, "ghost": false, "national_rank": 94, "performance": "\u4e09\u7b49\u5956", "point_rank": 105, "priority": true, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u957f\u6c99\u7406\u5de5\u5927\u5b66", "sort_index": 15}, {"empty": false, "ghost": false, "national_rank": 98, "performance": "\u4e09\u7b49\u5956", "point_rank": 100, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4ef2\u607a\u519c\u4e1a\u5de5\u7a0b\u5b66\u9662", "sort_index": 16}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 96, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u897f\u4ea4\u5229\u7269\u6d66\u5927\u5b66", "sort_index": 17}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 152, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5e7f\u5dde\u822a\u6d77\u5b66\u9662", "sort_index": 18}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 182, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u534e\u5357\u5e08\u8303\u5927\u5b66\uff08\u4f5b\u5c71\u6821\u533a\uff09", "sort_index": 19}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 185, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6b66\u6c49\u5927\u5b66", "sort_index": 20}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 190, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u53a6\u95e8\u7406\u5de5\u5b66\u9662", "sort_index": 21}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 193, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u53a6\u95e8\u5927\u5b66", "sort_index": 22}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 220, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u590d\u65e6\u5927\u5b66", "sort_index": 23}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 24}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 25}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 26}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 27}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 28}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 29}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 30}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 31}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 32}], "top16_signed_count": 5, "volunteers": 23}, {"capacity": 32, "national_quota": 10, "projected_volunteers": 32, "region": "\u4e1c\u90e8", "region_display": "\u4e1c\u90e8\u8d5b\u533a", "resurrection_quota": 6, "schools": [{"empty": false, "ghost": false, "national_rank": 2, "performance": "\u4e9a\u519b", "point_rank": 19, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e2d\u56fd\u79d1\u5b66\u6280\u672f\u5927\u5b66", "sort_index": 1}, {"empty": false, "ghost": false, "national_rank": 6, "performance": "\u516b\u5f3a", "point_rank": 11, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e2d\u56fd\u77f3\u6cb9\u5927\u5b66\uff08\u534e\u4e1c\uff09", "sort_index": 2}, {"empty": false, "ghost": false, "national_rank": 8, "performance": "\u516b\u5f3a", "point_rank": 4, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6d59\u6c5f\u5927\u5b66", "sort_index": 3}, {"empty": false, "ghost": false, "national_rank": 9, "performance": "\u5341\u516d\u5f3a", "point_rank": 14, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e1c\u5357\u5927\u5b66", "sort_index": 4}, {"empty": false, "ghost": false, "national_rank": 15, "performance": "\u5341\u516d\u5f3a", "point_rank": 17, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u592a\u539f\u5de5\u4e1a\u5b66\u9662", "sort_index": 5}, {"empty": false, "ghost": false, "national_rank": 18, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 10, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u897f\u5b89\u4ea4\u901a\u5927\u5b66", "sort_index": 6}, {"empty": false, "ghost": false, "national_rank": 19, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 26, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5357\u4eac\u822a\u7a7a\u822a\u5929\u5927\u5b66\u91d1\u57ce\u5b66\u9662", "sort_index": 7}, {"empty": false, "ghost": false, "national_rank": 20, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 24, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5c71\u4e1c\u79d1\u6280\u5927\u5b66", "sort_index": 8}, {"empty": false, "ghost": false, "national_rank": 24, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 29, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6b66\u6c49\u5de5\u7a0b\u5927\u5b66", "sort_index": 9}, {"empty": false, "ghost": false, "national_rank": 30, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 30, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e2d\u56fd\u77ff\u4e1a\u5927\u5b66", "sort_index": 10}, {"empty": false, "ghost": true, "national_rank": 32, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 39, "priority": false, "reallocation_hint": "-\u003e \u5317\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u51fa(\u9884\u6d4b)", "school": "\u4e2d\u56fd\u77f3\u6cb9\u5927\u5b66\uff08\u5317\u4eac\uff09", "sort_index": 11}, {"empty": false, "ghost": false, "national_rank": 34, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 71, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u534e\u4e1c\u7406\u5de5\u5927\u5b66", "sort_index": 12}, {"empty": false, "ghost": false, "national_rank": 38, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 21, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5357\u660c\u5927\u5b66", "sort_index": 13}, {"empty": false, "ghost": true, "national_rank": 39, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 44, "priority": false, "reallocation_hint": "-\u003e \u5317\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u51fa(\u9884\u6d4b)", "school": "\u534e\u5317\u79d1\u6280\u5b66\u9662", "sort_index": 14}, {"empty": false, "ghost": true, "national_rank": 40, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 38, "priority": false, "reallocation_hint": "-\u003e \u5317\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u51fa(\u9884\u6d4b)", "school": "\u9996\u90fd\u5e08\u8303\u5927\u5b66", "sort_index": 15}, {"empty": false, "ghost": false, "national_rank": 45, "performance": "\u590d\u6d3b\u8d5b", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5317\u4eac\u7406\u5de5\u5927\u5b66\uff08\u73e0\u6d77\uff09", "sort_index": 16}, {"empty": false, "ghost": false, "national_rank": 46, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 33, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u534e\u4e2d\u79d1\u6280\u5927\u5b66", "sort_index": 17}, {"empty": false, "ghost": false, "national_rank": 47, "performance": "\u4e09\u7b49\u5956", "point_rank": 65, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5b89\u5fbd\u4fe1\u606f\u5de5\u7a0b\u5b66\u9662", "sort_index": 18}, {"empty": false, "ghost": true, "national_rank": 50, "performance": "\u4e09\u7b49\u5956", "point_rank": 43, "priority": false, "reallocation_hint": "-\u003e \u5317\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u51fa(\u9884\u6d4b)", "school": "\u5317\u4eac\u7406\u5de5\u5927\u5b66", "sort_index": 19}, {"empty": false, "ghost": false, "national_rank": 59, "performance": "\u4e09\u7b49\u5956", "point_rank": 65, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u798f\u5efa\u7406\u5de5\u5927\u5b66", "sort_index": 20}, {"empty": false, "ghost": false, "national_rank": 60, "performance": "\u4e09\u7b49\u5956", "point_rank": 120, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5e7f\u897f\u5927\u5b66", "sort_index": 21}, {"empty": false, "ghost": false, "national_rank": 65, "performance": "\u4e09\u7b49\u5956", "point_rank": 57, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5408\u80a5\u5de5\u4e1a\u5927\u5b66", "sort_index": 22}, {"empty": false, "ghost": false, "national_rank": 66, "performance": "\u4e09\u7b49\u5956", "point_rank": 65, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5408\u80a5\u5de5\u4e1a\u5927\u5b66\uff08\u5ba3\u57ce\u6821\u533a\uff09", "sort_index": 23}, {"empty": false, "ghost": false, "national_rank": 71, "performance": "\u4e09\u7b49\u5956", "point_rank": 114, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6c5f\u82cf\u5927\u5b66", "sort_index": 24}, {"empty": false, "ghost": false, "national_rank": 74, "performance": "\u4e09\u7b49\u5956", "point_rank": 42, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5357\u4eac\u7406\u5de5\u5927\u5b66", "sort_index": 25}, {"empty": false, "ghost": false, "national_rank": 76, "performance": "\u4e09\u7b49\u5956", "point_rank": 48, "priority": true, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u9f50\u9c81\u5de5\u4e1a\u5927\u5b66", "sort_index": 26}, {"empty": false, "ghost": true, "national_rank": 77, "performance": "\u4e09\u7b49\u5956", "point_rank": 90, "priority": false, "reallocation_hint": "-\u003e \u5317\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u51fa(\u9884\u6d4b)", "school": "\u9752\u5c9b\u5927\u5b66", "sort_index": 27}, {"empty": false, "ghost": false, "national_rank": 79, "performance": "\u4e09\u7b49\u5956", "point_rank": 31, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e0a\u6d77\u5de5\u7a0b\u6280\u672f\u5927\u5b66", "sort_index": 28}, {"empty": false, "ghost": false, "national_rank": 87, "performance": "\u4e09\u7b49\u5956", "point_rank": 57, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u897f\u5357\u4ea4\u901a\u5927\u5b66", "sort_index": 29}, {"empty": false, "ghost": false, "national_rank": 97, "performance": "\u4e09\u7b49\u5956", "point_rank": 57, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e2d\u5317\u5927\u5b66", "sort_index": 30}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 75, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u592a\u539f\u79d1\u6280\u5927\u5b66", "sort_index": 31}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 85, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u798f\u5efa\u5e08\u8303\u5927\u5b66", "sort_index": 32}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 114, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u534e\u5357\u5e08\u8303\u5927\u5b66", "sort_index": 33}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 128, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5357\u4eac\u7406\u5de5\u5927\u5b66\u6c5f\u9634\u6821\u533a", "sort_index": 34}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 152, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6b66\u6c49\u79d1\u6280\u5927\u5b66", "sort_index": 35}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 163, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u676d\u5dde\u7535\u5b50\u79d1\u6280\u5927\u5b66", "sort_index": 36}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 191, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e0a\u6d77\u5927\u5b66", "sort_index": 37}], "top16_signed_count": 5, "volunteers": 37}, {"capacity": 32, "national_quota": 8, "projected_volunteers": 27, "region": "\u5317\u90e8", "region_display": "\u5317\u90e8\u8d5b\u533a", "resurrection_quota": 5, "schools": [{"empty": false, "ghost": false, "national_rank": 4, "performance": "\u6bbf\u519b", "point_rank": 3, "priority": true, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e1c\u5317\u5927\u5b66", "sort_index": 1}, {"empty": false, "ghost": false, "national_rank": 5, "performance": "\u516b\u5f3a", "point_rank": 16, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5927\u8fde\u7406\u5de5\u5927\u5b66", "sort_index": 2}, {"empty": false, "ghost": false, "national_rank": 7, "performance": "\u516b\u5f3a", "point_rank": 27, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u540c\u6d4e\u5927\u5b66", "sort_index": 3}, {"empty": false, "ghost": false, "national_rank": 11, "performance": "\u5341\u516d\u5f3a", "point_rank": 9, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u54c8\u5c14\u6ee8\u5de5\u4e1a\u5927\u5b66", "sort_index": 4}, {"empty": false, "ghost": false, "national_rank": 22, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 15, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u54c8\u5c14\u6ee8\u5de5\u4e1a\u5927\u5b66\uff08\u5a01\u6d77\uff09", "sort_index": 5}, {"empty": false, "ghost": false, "national_rank": 23, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 25, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u54c8\u5c14\u6ee8\u5de5\u7a0b\u5927\u5b66", "sort_index": 6}, {"empty": false, "ghost": false, "national_rank": 27, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 45, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5317\u65b9\u5de5\u4e1a\u5927\u5b66", "sort_index": 7}, {"empty": false, "ghost": false, "national_rank": 28, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 36, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u897f\u5317\u5de5\u4e1a\u5927\u5b66", "sort_index": 8}, {"empty": false, "ghost": false, "national_rank": 29, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 23, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5409\u6797\u5927\u5b66", "sort_index": 9}, {"empty": false, "ghost": false, "national_rank": 36, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 55, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u9999\u6e2f\u79d1\u6280\u5927\u5b66", "sort_index": 10}, {"empty": false, "ghost": false, "national_rank": 42, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 46, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5929\u6d25\u5927\u5b66", "sort_index": 11}, {"empty": false, "ghost": false, "national_rank": 51, "performance": "\u4e09\u7b49\u5956", "point_rank": 74, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5317\u4eac\u4fe1\u606f\u79d1\u6280\u5927\u5b66", "sort_index": 12}, {"empty": false, "ghost": false, "national_rank": 53, "performance": "\u4e09\u7b49\u5956", "point_rank": 82, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6210\u90fd\u4fe1\u606f\u5de5\u7a0b\u5927\u5b66", "sort_index": 13}, {"empty": false, "ghost": false, "national_rank": 56, "performance": "\u4e09\u7b49\u5956", "point_rank": 63, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u4e1c\u5317\u5927\u5b66\u79e6\u7687\u5c9b\u5206\u6821", "sort_index": 14}, {"empty": false, "ghost": false, "national_rank": 68, "performance": "\u4e09\u7b49\u5956", "point_rank": 79, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6cb3\u5317\u79d1\u6280\u5927\u5b66", "sort_index": 15}, {"empty": false, "ghost": false, "national_rank": 70, "performance": "\u4e09\u7b49\u5956", "point_rank": 84, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u534e\u5317\u7406\u5de5\u5927\u5b66", "sort_index": 16}, {"empty": false, "ghost": false, "national_rank": 84, "performance": "\u4e09\u7b49\u5956", "point_rank": 51, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6c88\u9633\u7406\u5de5\u5927\u5b66", "sort_index": 17}, {"empty": false, "ghost": false, "national_rank": 93, "performance": "\u4e09\u7b49\u5956", "point_rank": 72, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u957f\u5b89\u5927\u5b66", "sort_index": 18}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 88, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u9999\u6e2f\u5927\u5b66", "sort_index": 19}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 118, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u5185\u8499\u53e4\u79d1\u6280\u5927\u5b66", "sort_index": 20}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 134, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u8fbd\u5b81\u77f3\u6cb9\u5316\u5de5\u5927\u5b66", "sort_index": 21}, {"empty": false, "ghost": false, "national_rank": null, "performance": "-", "point_rank": 220, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u6c5f\u5357\u5927\u5b66\u971e\u5ba2\u6e7e\u6821\u533a", "sort_index": 22}, {"empty": false, "ghost": true, "national_rank": 32, "performance": "\u4e09\u5341\u4e8c\u5f3a", "point_rank": 39, "priority": false, "reallocation_hint": "\u6765\u81ea\u4e1c\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u5165(\u9884\u6d4b)", "school": "\u4e2d\u56fd\u77f3\u6cb9\u5927\u5b66\uff08\u5317\u4eac\uff09", "sort_index": 23}, {"empty": false, "ghost": true, "national_rank": 39, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 44, "priority": false, "reallocation_hint": "\u6765\u81ea\u4e1c\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u5165(\u9884\u6d4b)", "school": "\u534e\u5317\u79d1\u6280\u5b66\u9662", "sort_index": 24}, {"empty": false, "ghost": true, "national_rank": 40, "performance": "\u590d\u6d3b\u8d5b", "point_rank": 38, "priority": false, "reallocation_hint": "\u6765\u81ea\u4e1c\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u5165(\u9884\u6d4b)", "school": "\u9996\u90fd\u5e08\u8303\u5927\u5b66", "sort_index": 25}, {"empty": false, "ghost": true, "national_rank": 50, "performance": "\u4e09\u7b49\u5956", "point_rank": 43, "priority": false, "reallocation_hint": "\u6765\u81ea\u4e1c\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u5165(\u9884\u6d4b)", "school": "\u5317\u4eac\u7406\u5de5\u5927\u5b66", "sort_index": 26}, {"empty": false, "ghost": true, "national_rank": 77, "performance": "\u4e09\u7b49\u5956", "point_rank": 90, "priority": false, "reallocation_hint": "\u6765\u81ea\u4e1c\u90e8\u8d5b\u533a", "reallocation_status": "\u8c03\u5165(\u9884\u6d4b)", "school": "\u9752\u5c9b\u5927\u5b66", "sort_index": 27}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 28}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 29}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 30}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 31}, {"empty": true, "ghost": false, "national_rank": null, "performance": "-", "point_rank": null, "priority": false, "reallocation_hint": "-", "reallocation_status": "-", "school": "\u7a7a\u4f4d", "sort_index": 32}], "top16_signed_count": 4, "volunteers": 22}], "total_submitted": 82};
+      const boardEl = document.getElementById("board");
+      const generatedAtEl = document.getElementById("generatedAt");
+      const submitMetaEl = document.getElementById("submitMeta");
+      const refreshBtn = document.getElementById("refreshBtn");
+
+      function fmtTime(iso) {
+        const d = new Date(iso);
+        return Number.isNaN(d.getTime()) ? iso : d.toLocaleString("zh-CN", { hour12: false });
+      }
+
+      function rankText(nationalRank, pointRank) {
+        const a = nationalRank ? `国赛#${nationalRank}` : "国赛-";
+        const b = pointRank ? `积分#${pointRank}` : "积分-";
+        return `${a} / ${b}`;
+      }
+
+      function renderRegion(region) {
+        const rows = region.schools
+          .map((item) => {
+            if (item.empty) {
+              return `
+                <tr class="row-empty">
+                  <td>${item.sort_index}</td>
+                  <td class="school">空位</td>
+                  <td>-</td>
+                  <td class="col-performance">-</td>
+                  <td class="col-nowrap">-</td>
+                  <td class="col-nowrap">-</td>
+                </tr>
+              `;
+            }
+
+            const priorityTag = item.priority
+              ? '<span class="tag tag-priority">优先</span>'
+              : '<span class="tag tag-normal">普通</span>';
+            const statusTag = item.reallocation_status !== "-"
+              ? (item.reallocation_status.startsWith("调入")
+                  ? `<span class="tag tag-status-in">${item.reallocation_status}</span>`
+                  : `<span class="tag tag-status-out">${item.reallocation_status}</span>`)
+              : '<span class="tag tag-status-none">-</span>';
+            const moveHint = item.reallocation_hint !== "-"
+              ? `<span class="move-hint">${item.reallocation_hint}</span>`
+              : "";
+            const rowClass = item.ghost ? "row-ghost" : "";
+            return `
+              <tr class="${rowClass}">
+                <td>${item.sort_index}</td>
+                <td class="school">${item.school}</td>
+                <td>${rankText(item.national_rank, item.point_rank)}</td>
+                <td class="col-performance">${item.performance}</td>
+                <td class="col-nowrap">${priorityTag}</td>
+                <td class="col-nowrap">${statusTag}${moveHint}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        return `
+          <article class="region-card">
+            <header class="region-head">
+              <h2 class="region-name">${region.region_display}</h2>
+              <div class="quota-row">
+                <span class="quota">国赛名额 <b>${region.national_quota}</b></span>
+                <span class="quota">复活赛名额 <b>${region.resurrection_quota}</b></span>
+                <span class="quota">去年16强(调剂后) <b>${region.top16_signed_count}</b></span>
+                <span class="quota">当前志愿 <b>${region.volunteers}/${region.capacity}</b></span>
+                <span class="quota">调剂后估算 <b>${region.projected_volunteers}/${region.capacity}</b></span>
+              </div>
+            </header>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>学校</th>
+                    <th>排名</th>
+                    <th class="col-performance">成绩</th>
+                    <th>优先</th>
+                    <th>调剂状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows || '<tr><td colspan="6">暂无学校数据</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        `;
+      }
+
+      function render(payload) {
+        generatedAtEl.textContent = `更新时间: ${fmtTime(payload.generated_at)}`;
+        submitMetaEl.textContent = `已提交志愿: ${payload.total_submitted}/${payload.expected_total}`;
+
+        boardEl.innerHTML = payload.regions.map(renderRegion).join("");
+      }
+
+      async function refresh() {
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = "刷新中...";
+        try {
+          const resp = await fetch("./data.json?t=" + Date.now(), { cache: "no-store" });
+          if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+          }
+          const payload = await resp.json();
+          render(payload);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          refreshBtn.disabled = false;
+          refreshBtn.textContent = "立即刷新";
+        }
+      }
+
+      refreshBtn.addEventListener("click", refresh);
+      render(initialPayload);
+      setInterval(refresh, 60000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+name: Deploy static snapshot to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/rmuc_analyzer/**"
+      - "scripts/build_static_site.py"
+      - ".github/workflows/deploy-pages.yml"
+      - "config/config.json"
+      - "data/**"
+  schedule:
+    # Regenerate the snapshot every 30 minutes so the published board stays fresh.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+# Allow one concurrent deployment per ref.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Playwright is optional at build time; the analyzer falls back to
+          # requests + BeautifulSoup when it is unavailable.
+          pip install Flask requests beautifulsoup4
+
+      - name: Build static snapshot
+        run: PYTHONPATH=src python scripts/build_static_site.py --config config/config.json
+        # Do not fail the whole deploy if live scraping fails; we still want
+        # to republish the last-known-good snapshot that is already in docs/.
+        continue-on-error: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
