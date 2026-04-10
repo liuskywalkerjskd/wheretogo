@@ -12,6 +12,7 @@
 3. 估算复活赛名额（模拟值，仅用于态势分析）。
 4. 预测可能被调剂的队伍和去向。
 5. 在网页里看到“调入/调出(预测)”和虚化展示。
+6. 进入模拟模式，手动改动学校赛区后对比“基线 vs 模拟”名额变化。
 
 ## 3 分钟上手（新手推荐）
 
@@ -56,6 +57,14 @@ python run_web.py
 1. 页面自动刷新（60 秒）。
 2. 直接看到三赛区卡片和学校表格。
 3. 支持查看调剂状态（调入/调出预测）。
+4. 支持模拟模式：仅针对当前已报名学校手动改赛区并重算。
+
+模拟模式说明：
+1. 点击页面右上角「进入模拟模式」。
+2. 在模拟面板里添加一条或多条改动：选择学校 + 目标赛区。
+3. 点击「应用模拟」，页面会展示“基线结果”和“模拟结果”并排对比。
+4. 模拟结果仅当前页面会话有效，不会写回真实报名数据或缓存。
+5. 进入模拟模式后会暂停自动刷新；如果点「刷新基线」，需重新应用模拟。
 
 注意：`run_web.py` 默认使用代码内置配置，不会自动读取 `config/config.json`。
 
@@ -152,6 +161,34 @@ curl http://127.0.0.1:8000/api/analysis
 4. `regions`：三赛区详细数据。
 5. `notes`：口径说明与运行提示。
 
+模拟接口：`POST /api/simulate`
+
+请求体示例：
+
+```json
+{
+   "changes": [
+      {"school": "某高校", "to_region": "南部"},
+      {"school": "另一高校", "to_region": "东部"}
+   ]
+}
+```
+
+说明：
+1. `school` 必须是当前已报名学校。
+2. `to_region` 仅支持 `南部` / `东部` / `北部`。
+3. 同一学校多次提交时，按最后一次改动生效。
+4. 改到原赛区会被忽略（no-op）。
+
+返回字段（成功）：
+1. `baseline`：基线 payload（改动前）。
+2. `simulated`：模拟 payload（改动后）。
+3. `simulation_meta`：本次模拟元信息（生效/忽略/错误条数与明细）。
+
+常见错误码：
+1. `400`：请求体不是 JSON 对象，或缺少 `changes` 数组。
+2. `422`：改动参数校验失败（学校不存在、赛区非法等）。
+
 ## 常见问题（先看这里）
 
 ### 1) 网页打不开或端口占用
@@ -197,6 +234,79 @@ PYTHONPATH=src pytest -q
 3. `config/config.example.json`：配置模板。
 4. `src/rmuc_analyzer/`：核心逻辑代码。
 5. `tests/`：单元测试。
+6. `scripts/build_static_site.py`：把 Flask 页面离线渲染成静态快照（供 GitHub Pages 托管）。
+7. `scripts/deploy_hf_space.py`：一键把 Flask 应用部署到 Hugging Face Space。
+8. `deploy/hf_space/`：HF Space 部署所需的 Dockerfile / wsgi.py / requirements.txt / README 模板。
+9. `.github/workflows/deploy-pages.yml`：定时重建静态快照并发布到 GitHub Pages。
+
+## 在线部署（给想让别人直接在线看的同学）
+
+这个项目的后端是一个 Flask 应用，每次请求都会实时抓取青流报名数据。因此在线
+部署有两条路线，可以单独使用，也可以组合成「静态快照 + 实时后端」的双保险：
+
+### 路线 A：GitHub Pages（30 分钟一快照，适合纯展示）
+
+GitHub Pages 只能托管静态文件、不能跑 Python，所以我们把 Flask 页面离线渲染
+成一份静态 HTML + `data.json`，再用 GitHub Actions 定时重建。新数据的落地颗粒度
+大约是 **30 分钟**（GitHub 对 cron 的文档最小间隔是 5 分钟，实际还会受平台负载
+影响而延迟，真需要更细的颗粒度请走路线 B）。
+
+一次性启用流程：
+
+1. Fork 这个仓库到你自己名下。
+2. 在你的 fork 里：`Settings → Pages → Source` 选 **GitHub Actions**。
+3. 推任意一个提交（或去 `Actions` 页面点 `Deploy static snapshot to GitHub Pages`
+   → `Run workflow`）触发首次构建。
+4. 几十秒后访问 `https://<your_github_user>.github.io/<repo_name>/`。
+
+想让快照每 N 分钟自动刷新：不用改代码，`deploy-pages.yml` 里已经写好了
+`cron: "*/30 * * * *"`，按需改成 `*/5` 之类即可。想把快照页和你自己的
+实时后端（路线 B）联动，在仓库的 `Settings → Secrets and variables → Actions
+→ Variables` 里新增一个变量：
+
+- **Name**：`LIVE_URL`
+- **Value**：你的 HF Space 的 URL，比如 `https://alice-wheretogo.hf.space/`
+
+下次 Pages 重建时，页面会自动出现一个「⚡ 真·实时版本」按钮指向你的 Space。
+
+### 路线 B：Hugging Face Space（真·实时，每次请求现抓）
+
+Hugging Face Space 的 Docker SDK 可以直接跑常驻 Flask 进程，免费、无需信用卡、
+不会像 Render 那样冷启动，是这个项目的推荐部署方式。
+
+一次性启用流程：
+
+1. 注册 <https://huggingface.co/> 账号。
+2. 在 <https://huggingface.co/settings/tokens> 创建一个 `Write` 权限的 token。
+3. 在本地仓库目录执行（把 `your_username` 换成你自己的 HF 用户名）：
+
+   ```bash
+   pip install huggingface_hub
+   export HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx
+   python scripts/deploy_hf_space.py --space your_username/wheretogo
+   ```
+
+   脚本会：自动创建 Docker Space → 把 `src/` + `config/` + `data/` + `deploy/hf_space/`
+   下的 `Dockerfile`、`wsgi.py`、`requirements.txt`、`README.md` 打包上传 → 触发
+   HF 云端构建。
+
+4. 等 30–60 秒，访问 `https://your_username-wheretogo.hf.space/` 就是实时
+   Flask 页面了，`立即刷新` 按钮会命中真实后端。
+
+之后每次你改了代码，重新跑一遍同样的命令就能把 Space 同步到最新。
+
+### 路线 A + B：推荐组合
+
+用路线 B 拿到 HF Space 的 URL，回头按路线 A 的说明把那个 URL 设置成
+`LIVE_URL` 仓库变量。这样：
+
+- **GitHub Pages**（`https://<your_github_user>.github.io/<repo>/`）
+  当 "橱窗"，国内访问稳定，30 分钟一快照，带跳转按钮。
+- **Hugging Face Space**（`https://<your_hf_user>-<space>.hf.space/`）
+  当 "实时引擎"，每次请求现抓，毫秒级最新数据。
+
+两条链接形成闭环：围观看客走 Pages，要做实时决策的点一下「⚡ 真·实时版本」
+跳过去。
 
 ## 开源前建议清单
 

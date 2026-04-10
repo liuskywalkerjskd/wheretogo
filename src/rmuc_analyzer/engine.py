@@ -397,22 +397,13 @@ def predict_reallocation(
 
     # 规则顺序：
     # 1) 先按志愿数从少到多确定 A<B<C，先补A（从B/C调剂）。
-    # 2) A调剂结束后，仅在B/C之间继续调剂，直至两者满足容量。
+    # 2) A调剂结束后，重新比较B/C剩余志愿数，再在二者之间继续调剂。
     ordered_regions = sorted(REGION_ORDER, key=lambda region: (counts[region], REGION_ORDER.index(region)))
     region_a, region_b, region_c = ordered_regions
 
-    adjustment_phases = [
-        (region_a, [region_b, region_c]),
-    ]
+    def _run_phase(target: str, donor_regions: List[str]) -> None:
+        nonlocal remaining_required_moves
 
-    remaining_regions = [region_b, region_c]
-    remaining_ordered = sorted(
-        remaining_regions,
-        key=lambda region: (counts[region], REGION_ORDER.index(region)),
-    )
-    adjustment_phases.append((remaining_ordered[0], [remaining_ordered[1]]))
-
-    for target, donor_regions in adjustment_phases:
         deficit_raw = capacity - counts[target]
         deficit = deficit_raw
 
@@ -422,10 +413,12 @@ def predict_reallocation(
             deficit = min(deficit_raw, remaining_required_moves)
 
         if deficit <= 0:
-            continue
+            return
 
         candidates: List[Tuple[int, int, str, str, Optional[int]]] = []
         for donor in donor_regions:
+            if submitted < expected_total and counts[donor] <= capacity:
+                continue
             for school in assignments[donor]:
                 school_key = normalize_school_name(school)
                 if school_key in moved_keys:
@@ -443,9 +436,14 @@ def predict_reallocation(
                 candidates.append((distance_km, -rank_for_sort, donor, school, rank_value))
 
         candidates.sort(key=lambda item: (item[0], item[1], REGION_ORDER.index(item[2]), item[3]))
-        selected = candidates[:deficit]
+        selected_count = 0
 
-        for distance_km, _rank_sort, donor, school, rank_value in selected:
+        for distance_km, _rank_sort, donor, school, rank_value in candidates:
+            if selected_count >= deficit:
+                break
+            # 报名未满时仅允许从当前仍超容量的赛区继续调出，避免制造新的缺口。
+            if submitted < expected_total and counts[donor] <= capacity:
+                continue
             if school not in assignments[donor]:
                 continue
             assignments[donor].remove(school)
@@ -453,6 +451,7 @@ def predict_reallocation(
             counts[donor] -= 1
             counts[target] += 1
             moved_keys.add(normalize_school_name(school))
+            selected_count += 1
 
             moves.append(
                 ReallocationMove(
@@ -468,8 +467,17 @@ def predict_reallocation(
             if remaining_required_moves > 0:
                 remaining_required_moves -= 1
 
-        if submitted < expected_total and remaining_required_moves <= 0:
-            break
+    _run_phase(region_a, [region_b, region_c])
+
+    if submitted < expected_total and remaining_required_moves <= 0:
+        return moves
+
+    remaining_regions = [region_b, region_c]
+    remaining_ordered = sorted(
+        remaining_regions,
+        key=lambda region: (counts[region], REGION_ORDER.index(region)),
+    )
+    _run_phase(remaining_ordered[0], [remaining_ordered[1]])
 
     return moves
 

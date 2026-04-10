@@ -1,5 +1,17 @@
 name: Deploy static snapshot to GitHub Pages
 
+# Renders the Flask dashboard to a static snapshot (docs/index.html +
+# docs/data.json) and publishes it to GitHub Pages. Runs on every push that
+# touches the analyzer or the build script, on a schedule so that the
+# published snapshot stays reasonably fresh, and on manual dispatch.
+#
+# Optional: set a repository variable called LIVE_URL (Settings → Secrets
+# and variables → Actions → Variables) to the URL of an always-on Flask
+# backend you deployed (e.g. a Hugging Face Docker Space). When set, the
+# built page gets an extra "⚡ 真·实时版本" button pointing at it, so viewers
+# who need per-request live data can jump from the snapshot mirror to the
+# real backend in one click.
+
 on:
   push:
     branches: [main]
@@ -10,11 +22,13 @@ on:
       - "config/config.json"
       - "data/**"
   schedule:
-    # Regenerate the snapshot every 30 minutes so the published board stays fresh.
+    # Rebuild the snapshot every 30 minutes. 5 minutes is the documented
+    # minimum for scheduled workflows and is best-effort only — don't expect
+    # sub-10-minute freshness here. If you need true real-time, run the
+    # Flask app on a persistent host (see README's "在线部署" section).
     - cron: "*/30 * * * *"
   workflow_dispatch:
 
-# Allow one concurrent deployment per ref.
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -38,14 +52,23 @@ jobs:
       - name: Install runtime dependencies
         run: |
           python -m pip install --upgrade pip
-          # Playwright is optional at build time; the analyzer falls back to
-          # requests + BeautifulSoup when it is unavailable.
+          # Playwright is optional — the analyzer falls back to requests +
+          # BeautifulSoup, which is what this build uses for speed.
           pip install Flask requests beautifulsoup4
 
       - name: Build static snapshot
-        run: PYTHONPATH=src python scripts/build_static_site.py --config config/config.json
-        # Do not fail the whole deploy if live scraping fails; we still want
-        # to republish the last-known-good snapshot that is already in docs/.
+        env:
+          LIVE_URL: ${{ vars.LIVE_URL }}
+        run: |
+          if [ -n "$LIVE_URL" ]; then
+            PYTHONPATH=src python scripts/build_static_site.py \
+              --config config/config.json --live-url "$LIVE_URL"
+          else
+            PYTHONPATH=src python scripts/build_static_site.py \
+              --config config/config.json
+          fi
+        # Do not fail the whole deploy if a live scrape fails; re-publish
+        # whatever was committed to docs/ so the site stays up.
         continue-on-error: true
 
       - name: Upload Pages artifact

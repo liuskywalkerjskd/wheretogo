@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from rmuc_analyzer.engine import predict_reallocation
+from rmuc_analyzer.engine import apply_reallocation_moves_to_counts, predict_reallocation
 from rmuc_analyzer.models import DistanceRecord, QingflowSnapshot
 from rmuc_analyzer.sources.robomaster import infer_overseas_priority_schools_2026
 from rmuc_analyzer.models import TeamRecord
@@ -216,3 +216,153 @@ def test_reallocation_in_incomplete_signup_only_marks_required_surplus_moves():
     assert len(moves) == 1
     assert moves[0].from_region == "东部"
     assert moves[0].to_region == "南部"
+
+
+def test_reallocation_recomputes_b_c_after_a_phase_in_full_signup():
+    # 满员场景下，A阶段后B/C可能发生反转；第二阶段必须按“剩余志愿数较少”重新比较。
+    snapshot = QingflowSnapshot(
+        fetched_at=datetime.now(timezone.utc),
+        source_url="test",
+        region_counts={"南部": 20, "东部": 33, "北部": 43},
+        region_schools={
+            "南部": [f"S{i}" for i in range(1, 21)],
+            "东部": [f"E{i}" for i in range(1, 34)],
+            "北部": [f"N{i}" for i in range(1, 44)],
+        },
+        stale=False,
+    )
+
+    # 引导A=南部阶段主要从北部调入，制造B/C反转。
+    distance_map = {}
+    for i in range(1, 21):
+        key = f"S{i}"
+        distance_map[key] = DistanceRecord(key, "S", 0, 500, 500)
+    for i in range(1, 34):
+        key = f"E{i}"
+        distance_map[key] = DistanceRecord(key, "E", 1000, 0, 800)
+    for i in range(1, 44):
+        key = f"N{i}"
+        distance_map[key] = DistanceRecord(key, "N", 1, 800, 0)
+
+    moves = predict_reallocation(
+        snapshot=snapshot,
+        distance_map=distance_map,
+        ranking_map={},
+        priority_schools=[],
+        capacity=32,
+        expected_total=96,
+    )
+
+    final_counts = {"南部": 20, "东部": 33, "北部": 43}
+    for move in moves:
+        final_counts[move.from_region] -= 1
+        final_counts[move.to_region] += 1
+
+    assert final_counts == {"南部": 32, "东部": 32, "北部": 32}
+    # 需要出现第二阶段在东/北之间的调剂。
+    assert any(
+        move.from_region == "东部" and move.to_region == "北部"
+        for move in moves
+    )
+
+
+def test_manual_region_change_can_increase_reallocation_pressure():
+    base_snapshot = QingflowSnapshot(
+        fetched_at=datetime.now(timezone.utc),
+        source_url="test",
+        region_counts={"南部": 3, "东部": 4, "北部": 2},
+        region_schools={
+            "南部": ["S1", "S2", "S3"],
+            "东部": ["E1", "E2", "E3", "E4"],
+            "北部": ["N1", "N2"],
+        },
+        stale=False,
+    )
+
+    simulated_snapshot = QingflowSnapshot(
+        fetched_at=base_snapshot.fetched_at,
+        source_url="test",
+        region_counts={"南部": 3, "东部": 5, "北部": 1},
+        region_schools={
+            "南部": ["S1", "S2", "S3"],
+            "东部": ["E1", "E2", "E3", "E4", "N2"],
+            "北部": ["N1"],
+        },
+        stale=False,
+    )
+
+    distance_map = {
+        "S1": DistanceRecord("S1", "S", 0, 100, 100),
+        "S2": DistanceRecord("S2", "S", 0, 100, 100),
+        "S3": DistanceRecord("S3", "S", 0, 100, 100),
+        "E1": DistanceRecord("E1", "E", 20, 0, 50),
+        "E2": DistanceRecord("E2", "E", 21, 0, 51),
+        "E3": DistanceRecord("E3", "E", 22, 0, 52),
+        "E4": DistanceRecord("E4", "E", 23, 0, 53),
+        "N1": DistanceRecord("N1", "N", 40, 40, 0),
+        "N2": DistanceRecord("N2", "N", 41, 41, 0),
+    }
+
+    base_moves = predict_reallocation(
+        snapshot=base_snapshot,
+        distance_map=distance_map,
+        ranking_map={},
+        priority_schools=[],
+        capacity=3,
+        expected_total=9,
+    )
+
+    simulated_moves = predict_reallocation(
+        snapshot=simulated_snapshot,
+        distance_map=distance_map,
+        ranking_map={},
+        priority_schools=[],
+        capacity=3,
+        expected_total=9,
+    )
+
+    assert len(base_moves) == 1
+    assert len(simulated_moves) == 2
+
+
+def test_incomplete_signup_reallocation_does_not_overpull_single_donor():
+    # submitted=9 < expected_total=10，需仅调出两支超容队伍（南1+东1）。
+    # 若未限制供给赛区，算法会错误地从东部抽出两支，留下南部仍超容。
+    snapshot = QingflowSnapshot(
+        fetched_at=datetime.now(timezone.utc),
+        source_url="test",
+        region_counts={"南部": 4, "东部": 4, "北部": 1},
+        region_schools={
+            "南部": ["S1", "S2", "S3", "S4"],
+            "东部": ["E1", "E2", "E3", "E4"],
+            "北部": ["N1"],
+        },
+        stale=False,
+    )
+
+    distance_map = {
+        "S1": DistanceRecord("S1", "S", 0, 200, 12),
+        "S2": DistanceRecord("S2", "S", 0, 200, 13),
+        "S3": DistanceRecord("S3", "S", 0, 200, 14),
+        "S4": DistanceRecord("S4", "S", 0, 200, 15),
+        "E1": DistanceRecord("E1", "E", 200, 0, 1),
+        "E2": DistanceRecord("E2", "E", 200, 0, 2),
+        "E3": DistanceRecord("E3", "E", 200, 0, 3),
+        "E4": DistanceRecord("E4", "E", 200, 0, 4),
+        "N1": DistanceRecord("N1", "N", 50, 50, 0),
+    }
+
+    moves = predict_reallocation(
+        snapshot=snapshot,
+        distance_map=distance_map,
+        ranking_map={},
+        priority_schools=[],
+        capacity=3,
+        expected_total=10,
+    )
+
+    updated_counts = apply_reallocation_moves_to_counts(snapshot.region_counts, moves)
+
+    assert len(moves) == 2
+    assert updated_counts == {"南部": 3, "东部": 3, "北部": 3}
+    assert {move.from_region for move in moves} == {"南部", "东部"}

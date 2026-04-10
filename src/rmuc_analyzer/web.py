@@ -4,9 +4,9 @@ import csv
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 from rmuc_analyzer.cache import load_snapshot, save_snapshot
 from rmuc_analyzer.config import AnalyzerConfig
@@ -32,6 +32,7 @@ from rmuc_analyzer.sources.robomaster import (
     parse_teams_2026,
 )
 from rmuc_analyzer.utils import normalize_school_name
+from rmuc_analyzer.models import QingflowSnapshot
 
 
 @dataclass
@@ -156,8 +157,207 @@ def _format_performance(rec: Optional[Any]) -> str:
     return rec.award_level or "-"
 
 
-def _build_payload(runtime: AnalyzerRuntime) -> Dict[str, Any]:
-    snapshot, runtime_notes = _snapshot_with_cache(runtime)
+def _build_simulation_context(
+    snapshot: QingflowSnapshot,
+    runtime: AnalyzerRuntime,
+) -> Dict[str, Any]:
+    schools: List[Dict[str, str]] = []
+    seen_keys: set[str] = set()
+
+    for region in REGION_ORDER:
+        for school in snapshot.region_schools.get(region, []):
+            school_key = normalize_school_name(school)
+            if school_key in seen_keys:
+                continue
+            seen_keys.add(school_key)
+            schools.append(
+                {
+                    "school": school,
+                    "region": region,
+                    "region_display": REGION_DISPLAY[region],
+                }
+            )
+
+    schools.sort(
+        key=lambda item: _school_sort_key(
+            item["school"],
+            runtime.national_records,
+            runtime.ranking_map,
+        )
+    )
+
+    return {
+        "regions": [
+            {
+                "region": region,
+                "region_display": REGION_DISPLAY[region],
+            }
+            for region in REGION_ORDER
+        ],
+        "schools": schools,
+        "total_schools": len(schools),
+    }
+
+
+def _apply_simulation_changes(
+    snapshot: QingflowSnapshot,
+    changes: List[Dict[str, Any]],
+) -> Tuple[QingflowSnapshot, Dict[str, Any]]:
+    region_schools = {
+        region: list(snapshot.region_schools.get(region, []))
+        for region in REGION_ORDER
+    }
+
+    school_index: Dict[str, Tuple[str, str]] = {}
+    for region in REGION_ORDER:
+        for school in region_schools[region]:
+            school_key = normalize_school_name(school)
+            if school_key in school_index:
+                continue
+            school_index[school_key] = (region, school)
+
+    errors: List[Dict[str, Any]] = []
+    ignored: List[Dict[str, Any]] = []
+    final_changes: Dict[str, Dict[str, Any]] = {}
+
+    for idx, item in enumerate(changes):
+        if not isinstance(item, dict):
+            errors.append({"index": idx, "reason": "改动项必须是对象"})
+            continue
+
+        school_value = item.get("school")
+        to_region_value = item.get("to_region")
+        school = school_value.strip() if isinstance(school_value, str) else ""
+        to_region = to_region_value.strip() if isinstance(to_region_value, str) else ""
+
+        if not school:
+            errors.append({"index": idx, "reason": "school 不能为空"})
+            continue
+        if to_region not in REGION_ORDER:
+            errors.append({"index": idx, "school": school, "reason": "to_region 非法"})
+            continue
+
+        school_key = normalize_school_name(school)
+        if school_key not in school_index:
+            errors.append({"index": idx, "school": school, "reason": "学校不在当前已报名列表"})
+            continue
+
+        prev = final_changes.get(school_key)
+        if prev is not None:
+            ignored.append(
+                {
+                    "index": prev["index"],
+                    "school": prev["school"],
+                    "reason": "同一学校重复提交，已被后续改动覆盖",
+                }
+            )
+
+        canonical_school = school_index[school_key][1]
+        final_changes[school_key] = {
+            "index": idx,
+            "school": canonical_school,
+            "to_region": to_region,
+        }
+
+    if errors:
+        simulation_meta = {
+            "requested_count": len(changes),
+            "valid_count": len(final_changes),
+            "applied_count": 0,
+            "ignored_count": len(ignored),
+            "ignored": ignored,
+            "errors": errors,
+            "applied": [],
+        }
+        return snapshot, simulation_meta
+
+    applied: List[Dict[str, str]] = []
+    for item in sorted(final_changes.values(), key=lambda data: data["index"]):
+        school = item["school"]
+        to_region = item["to_region"]
+        school_key = normalize_school_name(school)
+        from_region, school_name = school_index[school_key]
+
+        if from_region == to_region:
+            ignored.append(
+                {
+                    "index": item["index"],
+                    "school": school_name,
+                    "reason": "目标赛区与当前赛区相同，已忽略",
+                }
+            )
+            continue
+
+        donor_list = region_schools[from_region]
+        remove_idx: Optional[int] = None
+        for idx, donor_school in enumerate(donor_list):
+            if normalize_school_name(donor_school) == school_key:
+                remove_idx = idx
+                break
+        if remove_idx is None:
+            errors.append(
+                {
+                    "index": item["index"],
+                    "school": school_name,
+                    "reason": "学校在源赛区中不存在",
+                }
+            )
+            continue
+
+        moved_school = donor_list.pop(remove_idx)
+
+        target_list = region_schools[to_region]
+        exists_in_target = any(
+            normalize_school_name(target_school) == school_key
+            for target_school in target_list
+        )
+        if not exists_in_target:
+            target_list.append(moved_school)
+
+        school_index[school_key] = (to_region, moved_school)
+        applied.append(
+            {
+                "school": moved_school,
+                "from_region": from_region,
+                "to_region": to_region,
+            }
+        )
+
+    simulated_counts = {
+        region: len(region_schools[region])
+        for region in REGION_ORDER
+    }
+    simulated_snapshot = QingflowSnapshot(
+        fetched_at=snapshot.fetched_at,
+        source_url=snapshot.source_url,
+        region_counts=simulated_counts,
+        region_schools=region_schools,
+        stale=snapshot.stale,
+    )
+
+    simulation_meta = {
+        "requested_count": len(changes),
+        "valid_count": len(final_changes),
+        "applied_count": len(applied),
+        "ignored_count": len(ignored),
+        "ignored": ignored,
+        "errors": errors,
+        "applied": applied,
+    }
+    return simulated_snapshot, simulation_meta
+
+
+def _build_payload(
+    runtime: AnalyzerRuntime,
+    snapshot_override: Optional[QingflowSnapshot] = None,
+    runtime_notes_override: Optional[List[str]] = None,
+    payload_mode: str = "baseline",
+) -> Dict[str, Any]:
+    if snapshot_override is None:
+        snapshot, runtime_notes = _snapshot_with_cache(runtime)
+    else:
+        snapshot = snapshot_override
+        runtime_notes = list(runtime_notes_override or [])
 
     moves = predict_reallocation(
         snapshot=snapshot,
@@ -211,18 +411,19 @@ def _build_payload(runtime: AnalyzerRuntime) -> Dict[str, Any]:
             key=lambda s: _school_sort_key(s, runtime.national_records, runtime.ranking_map),
         )
 
-        school_rows: List[Dict[str, Any]] = []
+        base_rows: List[Dict[str, Any]] = []
         for school in schools:
             key = normalize_school_name(school)
             rec = runtime.national_records.get(key)
             point_rank = runtime.ranking_map.get(key)
             move = move_by_school.get(key)
+            row_sort_key = _school_sort_key(school, runtime.national_records, runtime.ranking_map)
 
             is_moved_out = bool(move and move.from_region == region)
             reallocation_status = "调出(预测)" if is_moved_out else "-"
             reallocation_hint = f"-> {move.to_region}赛区" if is_moved_out else "-"
 
-            school_rows.append(
+            base_rows.append(
                 {
                     "sort_index": 0,
                     "school": school,
@@ -234,9 +435,13 @@ def _build_payload(runtime: AnalyzerRuntime) -> Dict[str, Any]:
                     "reallocation_hint": reallocation_hint,
                     "ghost": is_moved_out,
                     "empty": False,
+                    "_rank_sort_key": row_sort_key,
+                    # 调出学校保留在原赛区原位置展示，但不参与编号。
+                    "_indexless": is_moved_out,
                 }
             )
 
+        incoming_rows: List[Dict[str, Any]] = []
         incoming_moves = sorted(
             move_in_by_region.get(region, []),
             key=lambda move: _school_sort_key(move.school, runtime.national_records, runtime.ranking_map),
@@ -245,7 +450,8 @@ def _build_payload(runtime: AnalyzerRuntime) -> Dict[str, Any]:
             key = normalize_school_name(move.school)
             rec = runtime.national_records.get(key)
             point_rank = runtime.ranking_map.get(key)
-            school_rows.append(
+            row_sort_key = _school_sort_key(move.school, runtime.national_records, runtime.ranking_map)
+            incoming_rows.append(
                 {
                     "sort_index": 0,
                     "school": move.school,
@@ -257,12 +463,49 @@ def _build_payload(runtime: AnalyzerRuntime) -> Dict[str, Any]:
                     "reallocation_hint": f"来自{move.from_region}赛区",
                     "ghost": True,
                     "empty": False,
+                    "_rank_sort_key": row_sort_key,
+                    "_indexless": False,
                 }
             )
 
-        # 网页固定展示32席位，便于观察缺口。
+        # 调入学校按排名插入到应在位置；调出学校维持在原有位置。
+        active_rows = [row for row in base_rows if not row["_indexless"]]
+        incoming_rows.sort(key=lambda row: row["_rank_sort_key"])
+
+        merged_active_rows: List[Dict[str, Any]] = []
+        active_idx = 0
+        incoming_idx = 0
+        while active_idx < len(active_rows) and incoming_idx < len(incoming_rows):
+            if active_rows[active_idx]["_rank_sort_key"] <= incoming_rows[incoming_idx]["_rank_sort_key"]:
+                merged_active_rows.append(active_rows[active_idx])
+                active_idx += 1
+            else:
+                merged_active_rows.append(incoming_rows[incoming_idx])
+                incoming_idx += 1
+
+        if active_idx < len(active_rows):
+            merged_active_rows.extend(active_rows[active_idx:])
+        if incoming_idx < len(incoming_rows):
+            merged_active_rows.extend(incoming_rows[incoming_idx:])
+
+        school_rows: List[Dict[str, Any]] = []
+        merged_idx = 0
+        for row in base_rows:
+            if row["_indexless"]:
+                school_rows.append(row)
+                continue
+
+            if merged_idx < len(merged_active_rows):
+                school_rows.append(merged_active_rows[merged_idx])
+                merged_idx += 1
+
+        if merged_idx < len(merged_active_rows):
+            school_rows.extend(merged_active_rows[merged_idx:])
+
+        # 网页固定展示32个可编号席位，便于观察缺口。
         target_slots = runtime.config.capacity_per_region
-        for _ in range(len(school_rows) + 1, target_slots + 1):
+        numbered_rows = sum(1 for row in school_rows if not row["_indexless"])
+        while numbered_rows < target_slots:
             school_rows.append(
                 {
                     "sort_index": 0,
@@ -275,11 +518,21 @@ def _build_payload(runtime: AnalyzerRuntime) -> Dict[str, Any]:
                     "reallocation_hint": "-",
                     "ghost": False,
                     "empty": True,
+                    "_rank_sort_key": (1, 10**9, 10**9, "空位"),
+                    "_indexless": False,
                 }
             )
+            numbered_rows += 1
 
-        for idx, row in enumerate(school_rows, start=1):
-            row["sort_index"] = idx
+        display_idx = 1
+        for row in school_rows:
+            if row["_indexless"]:
+                row["sort_index"] = ""
+            else:
+                row["sort_index"] = display_idx
+                display_idx += 1
+            row.pop("_rank_sort_key", None)
+            row.pop("_indexless", None)
 
         national_quota = quota_result.items[region].total_quota
         resurrection_quota = resurrection.get(region, 0)
@@ -319,11 +572,13 @@ def _build_payload(runtime: AnalyzerRuntime) -> Dict[str, Any]:
     notes.append("复活赛名额为模拟估算，官方最终分配以组委会公告为准")
 
     return {
+        "mode": payload_mode,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "total_submitted": total_submitted,
         "expected_total": runtime.config.expected_total_teams,
         "regions": regions_payload,
         "notes": notes,
+        "simulation_context": _build_simulation_context(snapshot, runtime),
     }
 
 
@@ -345,6 +600,59 @@ def create_app(config_path: Optional[str] = None) -> Flask:
     @app.get("/api/analysis")
     def api_analysis():
         return jsonify(_build_payload(runtime))
+
+    @app.post("/api/simulate")
+    def api_simulate():
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            return jsonify({"error": "请求体必须是 JSON 对象"}), 400
+
+        changes = payload.get("changes")
+        if not isinstance(changes, list):
+            return jsonify({"error": "changes 字段必须是数组"}), 400
+
+        baseline_snapshot, runtime_notes = _snapshot_with_cache(runtime)
+        baseline = _build_payload(
+            runtime,
+            snapshot_override=baseline_snapshot,
+            runtime_notes_override=runtime_notes,
+            payload_mode="baseline",
+        )
+
+        simulated_snapshot, simulation_meta = _apply_simulation_changes(
+            baseline_snapshot,
+            changes,
+        )
+        if simulation_meta["errors"]:
+            return (
+                jsonify(
+                    {
+                        "error": "模拟参数校验失败",
+                        "simulation_meta": simulation_meta,
+                    }
+                ),
+                422,
+            )
+
+        simulated_notes = list(runtime_notes)
+        simulated_notes.append(f"模拟模式: 已应用{simulation_meta['applied_count']}条赛区改动")
+        if simulation_meta["ignored_count"]:
+            simulated_notes.append(f"模拟模式: 已忽略{simulation_meta['ignored_count']}条无效或重复改动")
+
+        simulated = _build_payload(
+            runtime,
+            snapshot_override=simulated_snapshot,
+            runtime_notes_override=simulated_notes,
+            payload_mode="simulated",
+        )
+
+        return jsonify(
+            {
+                "baseline": baseline,
+                "simulated": simulated,
+                "simulation_meta": simulation_meta,
+            }
+        )
 
     return app
 
