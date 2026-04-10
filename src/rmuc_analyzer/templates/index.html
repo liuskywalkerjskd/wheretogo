@@ -16,9 +16,6 @@
         --line: #dde6ef;
         --accent: #e86a33;
         --accent-soft: #ffe4d5;
-        --good: #2d8f66;
-        --warn: #d86a1a;
-        --priority: #1f7a8c;
       }
 
       * {
@@ -99,6 +96,7 @@
         margin-top: 14px;
         display: flex;
         gap: 10px;
+        flex-wrap: wrap;
       }
 
       .btn {
@@ -116,11 +114,149 @@
         background: #ffd4b8;
       }
 
+      .btn-alt {
+        background: #d8ebf5;
+        color: #16465a;
+      }
+
+      .btn-alt:hover {
+        background: #c8e0ee;
+      }
+
+      .btn-danger {
+        background: #ffe4da;
+        color: #7b2f12;
+      }
+
+      .btn-danger:hover {
+        background: #ffd2c2;
+      }
+
+      .sim-panel {
+        margin-top: 14px;
+        background: #ffffff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 8px 20px rgba(43, 75, 95, 0.08);
+      }
+
+      .sim-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .sim-title {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .sim-desc {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .sim-rows {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .sim-row {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(150px, 210px) minmax(110px, 160px) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .sim-row select {
+        width: 100%;
+        border: 1px solid #d6e1eb;
+        border-radius: 8px;
+        padding: 7px 8px;
+        font-family: "Noto Serif SC", serif;
+        color: #1f2c39;
+        background: #fff;
+      }
+
+      .sim-current {
+        display: inline-flex;
+        align-items: center;
+        font-size: 12px;
+        color: #5b6b78;
+        white-space: nowrap;
+      }
+
+      .sim-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .sim-status {
+        margin: 10px 0 0;
+        font-size: 13px;
+        min-height: 19px;
+        color: #385063;
+      }
+
+      .sim-status-error {
+        color: #9f2f09;
+      }
+
+      .sim-status-success {
+        color: #1f6f47;
+      }
+
       .board {
         margin-top: 18px;
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 14px;
+      }
+
+      .board-comparison {
+        display: block;
+      }
+
+      .comparison-wrap {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .compare-pane {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.78);
+        border-radius: 16px;
+        padding: 10px;
+      }
+
+      .pane-title {
+        margin: 4px 4px 10px;
+        font-size: 17px;
+        color: #1f3444;
+      }
+
+      .pane-board {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .compare-placeholder {
+        border: 1px dashed #ccd8e2;
+        border-radius: 12px;
+        padding: 14px;
+        color: #5d6f7d;
+        font-size: 13px;
+        background: #f9fcff;
       }
 
       .region-card {
@@ -150,10 +286,26 @@
         border-bottom: 1px dashed var(--line);
       }
 
+      .region-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
       .region-name {
         margin: 0;
         font-size: 22px;
         font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+      }
+
+      .view-badge {
+        font-size: 11px;
+        border-radius: 999px;
+        border: 1px solid #c9d9e6;
+        background: #eff5fa;
+        color: #476074;
+        padding: 1px 8px;
       }
 
       .quota-row {
@@ -173,6 +325,39 @@
 
       .quota b {
         color: var(--accent);
+      }
+
+      .delta-row {
+        margin-top: 7px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .delta {
+        display: inline-block;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-size: 11px;
+        padding: 1px 8px;
+      }
+
+      .delta-up {
+        color: #1f6f47;
+        background: #e4f6ed;
+        border-color: #bde5cd;
+      }
+
+      .delta-down {
+        color: #9a3b0b;
+        background: #ffe8de;
+        border-color: #ffc8b0;
+      }
+
+      .delta-flat {
+        color: #5d6e7c;
+        background: #f1f6fa;
+        border-color: #d5e1eb;
       }
 
       .table-wrap {
@@ -236,12 +421,6 @@
         border-color: #dce5ee;
       }
 
-      .tag-move {
-        color: #8d3d09;
-        background: var(--accent-soft);
-        border-color: #ffc9ac;
-      }
-
       .tag-status-out {
         color: #9a3b0b;
         background: #ffe7da;
@@ -255,12 +434,6 @@
       }
 
       .tag-status-none {
-        color: #667785;
-        background: #f4f7fb;
-        border-color: #dbe4ec;
-      }
-
-      .tag-none {
         color: #667785;
         background: #f4f7fb;
         border-color: #dbe4ec;
@@ -292,8 +465,19 @@
         .board {
           grid-template-columns: 1fr;
         }
+
+        .comparison-wrap {
+          grid-template-columns: 1fr;
+        }
+
         .region-card {
           min-height: 0;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .sim-row {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -309,7 +493,25 @@
         </div>
         <div class="toolbar">
           <button class="btn" id="refreshBtn" type="button">立即刷新</button>
+          <button class="btn btn-alt" id="toggleSimBtn" type="button">进入模拟模式</button>
         </div>
+      </section>
+
+      <section class="sim-panel" id="simPanel" hidden>
+        <div class="sim-head">
+          <div>
+            <h2 class="sim-title">模拟模式</h2>
+            <p class="sim-desc">只支持当前已报名学校改赛区，不会写回真实数据。进入模拟模式后会暂停自动刷新。</p>
+          </div>
+        </div>
+        <div class="sim-rows" id="simRows"></div>
+        <div class="sim-actions">
+          <button class="btn btn-alt" id="addChangeBtn" type="button">添加改动</button>
+          <button class="btn" id="applySimBtn" type="button">应用模拟</button>
+          <button class="btn" id="clearSimBtn" type="button">清空改动</button>
+          <button class="btn btn-danger" id="exitSimBtn" type="button">退出模拟</button>
+        </div>
+        <p class="sim-status" id="simStatus"></p>
       </section>
 
       <section class="board" id="board"></section>
@@ -317,10 +519,24 @@
 
     <script>
       const initialPayload = {{ initial_payload|tojson }};
+      const isStaticSnapshot = false;
       const boardEl = document.getElementById("board");
       const generatedAtEl = document.getElementById("generatedAt");
       const submitMetaEl = document.getElementById("submitMeta");
       const refreshBtn = document.getElementById("refreshBtn");
+      const toggleSimBtn = document.getElementById("toggleSimBtn");
+      const simPanel = document.getElementById("simPanel");
+      const simRowsEl = document.getElementById("simRows");
+      const addChangeBtn = document.getElementById("addChangeBtn");
+      const applySimBtn = document.getElementById("applySimBtn");
+      const clearSimBtn = document.getElementById("clearSimBtn");
+      const exitSimBtn = document.getElementById("exitSimBtn");
+      const simStatusEl = document.getElementById("simStatus");
+
+      let baselinePayload = initialPayload;
+      let simulatedPayload = null;
+      let simulationMode = false;
+      let autoRefreshTimer = null;
 
       function fmtTime(iso) {
         const d = new Date(iso);
@@ -333,7 +549,33 @@
         return `${a} / ${b}`;
       }
 
-      function renderRegion(region) {
+      function toSigned(delta) {
+        if (delta > 0) {
+          return `+${delta}`;
+        }
+        return `${delta}`;
+      }
+
+      function deltaTag(label, delta) {
+        const cls = delta > 0 ? "delta-up" : delta < 0 ? "delta-down" : "delta-flat";
+        return `<span class="delta ${cls}">${label} ${toSigned(delta)}</span>`;
+      }
+
+      function renderRegion(region, options = {}) {
+        const baselineRegion = options.baselineRegion || null;
+        const badge = options.badge || "";
+        const badgeHtml = badge ? `<span class="view-badge">${badge}</span>` : "";
+        let deltaRow = "";
+        if (baselineRegion) {
+          deltaRow = `
+            <div class="delta-row">
+              ${deltaTag("国赛", region.national_quota - baselineRegion.national_quota)}
+              ${deltaTag("复活赛", region.resurrection_quota - baselineRegion.resurrection_quota)}
+              ${deltaTag("调剂后估算", region.projected_volunteers - baselineRegion.projected_volunteers)}
+            </div>
+          `;
+        }
+
         const rows = region.schools
           .map((item) => {
             if (item.empty) {
@@ -361,6 +603,7 @@
               ? `<span class="move-hint">${item.reallocation_hint}</span>`
               : "";
             const rowClass = item.ghost ? "row-ghost" : "";
+
             return `
               <tr class="${rowClass}">
                 <td>${item.sort_index}</td>
@@ -377,7 +620,10 @@
         return `
           <article class="region-card">
             <header class="region-head">
-              <h2 class="region-name">${region.region_display}</h2>
+              <div class="region-title-row">
+                <h2 class="region-name">${region.region_display}</h2>
+                ${badgeHtml}
+              </div>
               <div class="quota-row">
                 <span class="quota">国赛名额 <b>${region.national_quota}</b></span>
                 <span class="quota">复活赛名额 <b>${region.resurrection_quota}</b></span>
@@ -385,6 +631,7 @@
                 <span class="quota">当前志愿 <b>${region.volunteers}/${region.capacity}</b></span>
                 <span class="quota">调剂后估算 <b>${region.projected_volunteers}/${region.capacity}</b></span>
               </div>
+              ${deltaRow}
             </header>
             <div class="table-wrap">
               <table>
@@ -407,34 +654,357 @@
         `;
       }
 
-      function render(payload) {
+      function updateSummary(payload) {
         generatedAtEl.textContent = `更新时间: ${fmtTime(payload.generated_at)}`;
         submitMetaEl.textContent = `已提交志愿: ${payload.total_submitted}/${payload.expected_total}`;
-
-        boardEl.innerHTML = payload.regions.map(renderRegion).join("");
       }
 
-      async function refresh() {
+      function renderBaselineOnly() {
+        boardEl.classList.remove("board-comparison");
+        boardEl.innerHTML = baselinePayload.regions.map((region) => renderRegion(region)).join("");
+      }
+
+      function renderComparison() {
+        boardEl.classList.add("board-comparison");
+        const baselineMap = Object.fromEntries(baselinePayload.regions.map((region) => [region.region, region]));
+
+        const baselineHtml = baselinePayload.regions
+          .map((region) => renderRegion(region, { badge: "基线" }))
+          .join("");
+
+        const simulatedHtml = simulatedPayload
+          ? simulatedPayload.regions
+              .map((region) => renderRegion(region, {
+                badge: "模拟",
+                baselineRegion: baselineMap[region.region],
+              }))
+              .join("")
+          : '<div class="compare-placeholder">还没有模拟结果。添加改动后点击“应用模拟”，右侧会显示对比结果。</div>';
+
+        boardEl.innerHTML = `
+          <div class="comparison-wrap">
+            <section class="compare-pane">
+              <h3 class="pane-title">基线结果</h3>
+              <div class="pane-board">${baselineHtml}</div>
+            </section>
+            <section class="compare-pane">
+              <h3 class="pane-title">模拟结果</h3>
+              <div class="pane-board">${simulatedHtml}</div>
+            </section>
+          </div>
+        `;
+      }
+
+      function renderView() {
+        updateSummary(baselinePayload);
+        if (simulationMode) {
+          renderComparison();
+          return;
+        }
+        renderBaselineOnly();
+      }
+
+      function getSimulationContext() {
+        const context = baselinePayload.simulation_context;
+        if (!context || !Array.isArray(context.schools) || !Array.isArray(context.regions)) {
+          return { schools: [], regions: [] };
+        }
+        return context;
+      }
+
+      function getRegionDisplayMap(context) {
+        const map = new Map();
+        for (const item of context.regions) {
+          map.set(item.region, item.region_display);
+        }
+        return map;
+      }
+
+      function getSchoolRegionMap(context) {
+        const map = new Map();
+        for (const item of context.schools) {
+          map.set(item.school, item.region);
+        }
+        return map;
+      }
+
+      function setSimulationStatus(text, kind = "info") {
+        simStatusEl.className = "sim-status";
+        if (kind === "error") {
+          simStatusEl.classList.add("sim-status-error");
+        } else if (kind === "success") {
+          simStatusEl.classList.add("sim-status-success");
+        }
+        simStatusEl.textContent = text;
+      }
+
+      function addSimulationRow(prefill = null) {
+        const context = getSimulationContext();
+        if (!context.schools.length || !context.regions.length) {
+          setSimulationStatus("当前缺少可模拟学校数据，请先刷新基线。", "error");
+          return;
+        }
+
+        const regionDisplayMap = getRegionDisplayMap(context);
+        const schoolRegionMap = getSchoolRegionMap(context);
+
+        const row = document.createElement("div");
+        row.className = "sim-row";
+
+        const schoolSelect = document.createElement("select");
+        schoolSelect.setAttribute("data-role", "school");
+        for (const item of context.schools) {
+          const option = document.createElement("option");
+          option.value = item.school;
+          option.textContent = `${item.school}（当前: ${item.region_display}）`;
+          schoolSelect.appendChild(option);
+        }
+
+        const regionSelect = document.createElement("select");
+        regionSelect.setAttribute("data-role", "to-region");
+        for (const item of context.regions) {
+          const option = document.createElement("option");
+          option.value = item.region;
+          option.textContent = item.region_display;
+          regionSelect.appendChild(option);
+        }
+
+        const currentRegionHint = document.createElement("span");
+        currentRegionHint.className = "sim-current";
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "btn btn-danger";
+        removeBtn.textContent = "删除";
+
+        row.appendChild(schoolSelect);
+        row.appendChild(regionSelect);
+        row.appendChild(currentRegionHint);
+        row.appendChild(removeBtn);
+        simRowsEl.appendChild(row);
+
+        if (prefill && typeof prefill.school === "string") {
+          schoolSelect.value = prefill.school;
+        }
+
+        const fallbackSchool = schoolSelect.value || context.schools[0].school;
+        if (!schoolSelect.value) {
+          schoolSelect.value = fallbackSchool;
+        }
+
+        const sourceRegion = schoolRegionMap.get(schoolSelect.value) || context.regions[0].region;
+        let regionTouched = false;
+
+        if (prefill && typeof prefill.to_region === "string") {
+          regionSelect.value = prefill.to_region;
+          regionTouched = true;
+        } else {
+          regionSelect.value = sourceRegion;
+        }
+
+        function updateCurrentHint() {
+          const source = schoolRegionMap.get(schoolSelect.value);
+          const sourceDisplay = regionDisplayMap.get(source) || "-";
+          currentRegionHint.textContent = `当前赛区: ${sourceDisplay}`;
+          if (!regionTouched && source) {
+            regionSelect.value = source;
+          }
+        }
+
+        schoolSelect.addEventListener("change", updateCurrentHint);
+        regionSelect.addEventListener("change", () => {
+          regionTouched = true;
+        });
+
+        removeBtn.addEventListener("click", () => {
+          row.remove();
+          if (!simRowsEl.children.length) {
+            addSimulationRow();
+          }
+          simulatedPayload = null;
+          renderView();
+          setSimulationStatus("已删除一条改动，请重新应用模拟。", "info");
+        });
+
+        updateCurrentHint();
+      }
+
+      function resetSimulationRows() {
+        simRowsEl.innerHTML = "";
+        addSimulationRow();
+      }
+
+      function collectSimulationChanges() {
+        const rows = Array.from(simRowsEl.querySelectorAll(".sim-row"));
+        return rows
+          .map((row) => {
+            const school = row.querySelector('[data-role="school"]')?.value || "";
+            const toRegion = row.querySelector('[data-role="to-region"]')?.value || "";
+            return { school, to_region: toRegion };
+          })
+          .filter((item) => item.school && item.to_region);
+      }
+
+      async function fetchBaselinePayload() {
+        const resp = await fetch("/api/analysis", { cache: "no-store" });
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}`);
+        }
+        return resp.json();
+      }
+
+      async function refreshBaseline() {
         refreshBtn.disabled = true;
         refreshBtn.textContent = "刷新中...";
         try {
-          const resp = await fetch("/api/analysis", { cache: "no-store" });
-          if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}`);
+          baselinePayload = await fetchBaselinePayload();
+          if (simulationMode) {
+            simulatedPayload = null;
+            setSimulationStatus("基线已刷新，请点击“应用模拟”重新计算结果。", "info");
           }
-          const payload = await resp.json();
-          render(payload);
+          renderView();
         } catch (err) {
           console.error(err);
+          if (simulationMode) {
+            setSimulationStatus(`刷新基线失败: ${err.message || err}`, "error");
+          }
         } finally {
           refreshBtn.disabled = false;
-          refreshBtn.textContent = "立即刷新";
+          refreshBtn.textContent = simulationMode ? "刷新基线" : "立即刷新";
         }
       }
 
-      refreshBtn.addEventListener("click", refresh);
-      render(initialPayload);
-      setInterval(refresh, 60000);
+      async function applySimulation() {
+        const changes = collectSimulationChanges();
+        if (!changes.length) {
+          setSimulationStatus("请至少添加一条改动。", "error");
+          return;
+        }
+
+        applySimBtn.disabled = true;
+        applySimBtn.textContent = "计算中...";
+        try {
+          const resp = await fetch("/api/simulate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ changes }),
+          });
+
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok) {
+            const detail = Array.isArray(data?.simulation_meta?.errors)
+              ? data.simulation_meta.errors
+                  .map((item) => {
+                    const index = typeof item.index === "number" ? `#${item.index + 1}` : "#?";
+                    return `${index} ${item.reason}`;
+                  })
+                  .join("；")
+              : "";
+            const message = data?.error || `HTTP ${resp.status}`;
+            setSimulationStatus(detail ? `${message}：${detail}` : message, "error");
+            return;
+          }
+
+          baselinePayload = data.baseline || baselinePayload;
+          simulatedPayload = data.simulated || null;
+          renderView();
+
+          const meta = data.simulation_meta || {};
+          const applied = Number(meta.applied_count || 0);
+          const ignored = Number(meta.ignored_count || 0);
+          setSimulationStatus(`模拟完成：生效 ${applied} 条，忽略 ${ignored} 条。`, "success");
+        } catch (err) {
+          console.error(err);
+          setSimulationStatus(`模拟请求失败: ${err.message || err}`, "error");
+        } finally {
+          applySimBtn.disabled = false;
+          applySimBtn.textContent = "应用模拟";
+        }
+      }
+
+      function startAutoRefresh() {
+        if (autoRefreshTimer !== null) {
+          window.clearInterval(autoRefreshTimer);
+        }
+        autoRefreshTimer = window.setInterval(() => {
+          refreshBaseline();
+        }, 60000);
+      }
+
+      function stopAutoRefresh() {
+        if (autoRefreshTimer !== null) {
+          window.clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+        }
+      }
+
+      function enterSimulationMode() {
+        if (isStaticSnapshot) {
+          return;
+        }
+        simulationMode = true;
+        simPanel.hidden = false;
+        toggleSimBtn.textContent = "退出模拟模式";
+        refreshBtn.textContent = "刷新基线";
+        stopAutoRefresh();
+        simulatedPayload = null;
+        if (!simRowsEl.children.length) {
+          addSimulationRow();
+        }
+        renderView();
+        setSimulationStatus("已进入模拟模式，可添加多条改动后应用。", "info");
+      }
+
+      function exitSimulationMode() {
+        simulationMode = false;
+        simPanel.hidden = true;
+        simulatedPayload = null;
+        toggleSimBtn.textContent = "进入模拟模式";
+        refreshBtn.textContent = "立即刷新";
+        renderView();
+        startAutoRefresh();
+      }
+
+      refreshBtn.addEventListener("click", () => {
+        refreshBaseline();
+      });
+
+      toggleSimBtn.addEventListener("click", () => {
+        if (simulationMode) {
+          exitSimulationMode();
+          return;
+        }
+        enterSimulationMode();
+      });
+
+      addChangeBtn.addEventListener("click", () => {
+        addSimulationRow();
+      });
+
+      clearSimBtn.addEventListener("click", () => {
+        simulatedPayload = null;
+        resetSimulationRows();
+        renderView();
+        setSimulationStatus("已清空改动，请重新编辑。", "info");
+      });
+
+      applySimBtn.addEventListener("click", () => {
+        applySimulation();
+      });
+
+      exitSimBtn.addEventListener("click", () => {
+        exitSimulationMode();
+      });
+
+      if (isStaticSnapshot) {
+        toggleSimBtn.disabled = true;
+        toggleSimBtn.textContent = "模拟模式需实时后端";
+      }
+
+      renderView();
+      startAutoRefresh();
     </script>
   </body>
 </html>

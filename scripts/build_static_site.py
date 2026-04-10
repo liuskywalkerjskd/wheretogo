@@ -47,10 +47,13 @@ from rmuc_analyzer.config import AnalyzerConfig  # noqa: E402
 
 ORIGINAL_FETCH = 'fetch("/api/analysis", { cache: "no-store" })'
 STATIC_FETCH = 'fetch("./data.json?t=" + Date.now(), { cache: "no-store" })'
+ORIGINAL_SIMULATION_FLAG = "const isStaticSnapshot = false;"
+STATIC_SIMULATION_FLAG = "const isStaticSnapshot = true;"
 
 ORIGINAL_TOOLBAR = (
     '<div class="toolbar">\n'
     '          <button class="btn" id="refreshBtn" type="button">立即刷新</button>\n'
+    '          <button class="btn btn-alt" id="toggleSimBtn" type="button">进入模拟模式</button>\n'
     '        </div>'
 )
 
@@ -64,6 +67,7 @@ def _toolbar_with_live(live_url: str) -> str:
     return (
         '<div class="toolbar">\n'
         '          <button class="btn" id="refreshBtn" type="button">刷新快照</button>\n'
+        '          <button class="btn btn-alt" id="toggleSimBtn" type="button" disabled>模拟模式需实时后端</button>\n'
         f'          <a class="btn" href="{live_url}" target="_blank" rel="noopener" '
         'style="background:#ffd4b8;">⚡ 真·实时版本</a>\n'
         '        </div>'
@@ -100,6 +104,13 @@ def render_html(payload: dict, live_url: str | None) -> str:
             "src/rmuc_analyzer/templates/index.html"
         )
     html = html.replace(ORIGINAL_FETCH, STATIC_FETCH)
+
+    if ORIGINAL_SIMULATION_FLAG not in html:
+        raise RuntimeError(
+            "Template simulation flag not found; static patch is out of sync with "
+            "src/rmuc_analyzer/templates/index.html"
+        )
+    html = html.replace(ORIGINAL_SIMULATION_FLAG, STATIC_SIMULATION_FLAG)
 
     if live_url:
         if ORIGINAL_TOOLBAR not in html or ORIGINAL_SUB not in html:
